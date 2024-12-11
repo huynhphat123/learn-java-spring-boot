@@ -4,6 +4,7 @@ import com.phatdev.dto.request.UserCreateRequest;
 import com.phatdev.dto.request.UserUpdateRequest;
 import com.phatdev.dto.response.UserResponse;
 import com.phatdev.entity.User;
+import com.phatdev.enums.Role;
 import com.phatdev.expection.AppException;
 import com.phatdev.expection.ErrorCode;
 import com.phatdev.mapper.UserMapper;
@@ -11,11 +12,12 @@ import com.phatdev.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service // Đánh dấu lớp này là một Service trong Spring, chịu trách nhiệm xử lý logic nghiệp vụ
 @RequiredArgsConstructor // Tự động tạo constructor cho các trường final (userRepository, userMapper)
@@ -25,6 +27,7 @@ public class UserService {
 
      UserRepository userRepository; // Repository giao tiếp với cơ sở dữ liệu
      UserMapper userMapper; // Mapper để chuyển đổi giữa DTO và entity
+    PasswordEncoder passwordEncoder;
 
     //  Tạo user mới và lưu vào cơ sở dữ liệu
     public User createUser(UserCreateRequest request) {
@@ -32,14 +35,19 @@ public class UserService {
             throw new AppException(ErrorCode.USER_EXISTED); // Nếu user đã tồn tại, ném ngoại lệ
 
         User user = userMapper.toUser(request);
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10); // // Tạo BCryptPasswordEncoder với sức mạnh (rounds) là 10
         user.setPassword(passwordEncoder.encode(request.getPassword()));  // So sánh mật khẩu nhập vào với mật khẩu đã mã hóa trong DB
+
+        HashSet<String> roles = new HashSet<>();
+        roles.add(Role.USER.name());
+        user.setRoles(roles);
+
 
         return userRepository.save(user);
     }
     // Lấy danh sách tất cả người dùng
-    public List<User> getUsers() {
-        return userRepository.findAll(); // Trả về danh sách tất cả người dùng
+    public List<UserResponse> getUsers() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toUserResponse).toList();
     }
 
     // Lấy thông tin người dùng theo ID

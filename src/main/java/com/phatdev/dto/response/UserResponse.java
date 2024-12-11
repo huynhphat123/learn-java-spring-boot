@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 
 @JsonInclude(JsonInclude.Include.NON_NULL) // Loại bỏ các thuộc tính có giá trị null khi trả về JSON
@@ -20,4 +21,5 @@ public class UserResponse {
      String firstName;
      String lastName;
      LocalDate dob; // Ngày sinh
+     Set<String> roles;
 }

@@ -9,6 +9,7 @@ import com.phatdev.dto.request.AuthenticationRequest;
 import com.phatdev.dto.request.IntrospectRequest;
 import com.phatdev.dto.response.AuthenticationResponse;
 import com.phatdev.dto.response.IntrospectResponse;
+import com.phatdev.entity.User;
 import com.phatdev.expection.AppException;
 import com.phatdev.expection.ErrorCode;
 import com.phatdev.repository.UserRepository;
@@ -21,11 +22,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.StringJoiner;
 
 @Slf4j
 @Service
@@ -68,25 +71,25 @@ public class AuthenticationService {
     if(!authenticated)
         throw new AppException(ErrorCode.AUTHENTICATED); // Nếu sai, ném lỗi
 
-    var token = generateToken(request.getUsername()); // Nếu đúng, tạo JWT token
+    var token = generateToken(user); // Nếu đúng, tạo JWT token
 
     return AuthenticationResponse.builder()
             .token(token) // Trả về token cho người dùng
             .authenticated(true) // Xác nhận là người dùng đã xác thực thành công
             .build();
     }
-    private String generateToken(String username) {
+    private String generateToken(User user) {
         // Tạo Header: Sử dụng thuật toán HS512
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(username) // // Đặt username trong subject
+                .subject(user.getUsername()) // // Đặt username trong subject
                 .issuer("phatdev") // Đặt nhà phát hành (issuer) là phatdev
                 .issueTime(new Date())  // Thời gian phát hành token là hiện tại
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli() // Token sẽ hết hạn sau 1 giờ
                 ))
-                .claim("customClaims","custom") // Thông tin tùy chỉnh
+                .claim("scope",buildScope(user)) // Thông tin tùy chỉnh
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject()); // Chuyển payload thành JSON
@@ -100,5 +103,14 @@ public class AuthenticationService {
             log.error("Cannot create token", e); // Nếu có lỗi khi ký token, ghi log và ném ngoại lệ
             throw new RuntimeException(e);
         }
+    }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        if(!CollectionUtils.isEmpty(user.getRoles()))
+            user.getRoles().forEach(stringJoiner::add);
+
+        return stringJoiner.toString();
+
     }
 }
