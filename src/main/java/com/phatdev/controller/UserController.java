@@ -26,11 +26,10 @@ public class UserController {
 
     // tạo thông tin user và gọi xuống service
     @PostMapping
-    ApiReponse<User> createUser(@RequestBody @Valid UserCreateRequest request) {
-     ApiReponse<User> apiResponse = new ApiReponse<>();
-
-     apiResponse.setResult(userService.createUser(request));
-      return apiResponse;
+    ApiReponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request){
+        return ApiReponse.<UserResponse>builder()
+                .result(userService.createUser(request))
+                .build();
     }
 
     // Lấy danh sách tất cả user và gọi xuống service
@@ -47,22 +46,32 @@ public class UserController {
                 .build();
     }
 
-    // Lấy thông tin user theo id và gọi xuống service
     @GetMapping("/{userId}")
-    UserResponse getUser(@PathVariable("userId") String userId){
-            return userService.getUser(userId);
+    ApiReponse<UserResponse> getUser(@PathVariable("userId") String userId){
+        return ApiReponse.<UserResponse>builder()
+                .result(userService.getUser(userId))
+                .build();
     }
 
-    //  Cập nhật thông tin người dùng và gọi xuống service
-    @PutMapping("/{userId}")
-    UserResponse updateUser(@PathVariable("userId") String userId, @RequestBody UserUpdateRequest request) {
-        return userService.updateUser(userId, request);
+    @GetMapping("/myInfo")
+    ApiReponse<UserResponse> getMyInfo(){
+        return ApiReponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .build();
     }
 
-    // // Xóa người dùng theo ID và gọi xuống service
     @DeleteMapping("/{userId}")
-    String deleteUser(@PathVariable("userId") String userId){
-         userService.deleteUser(userId);
-         return "User has been deleted";
+    ApiReponse<String> deleteUser(@PathVariable String userId){
+        userService.deleteUser(userId);
+        return ApiReponse.<String>builder()
+                .result("User has been deleted")
+                .build();
+    }
+
+    @PutMapping("/{userId}")
+    ApiReponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request){
+        return ApiReponse.<UserResponse>builder()
+                .result(userService.updateUser(userId, request))
+                .build();
     }
 }

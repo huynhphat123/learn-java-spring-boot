@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,6 +21,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+
 public class SecurityConfig {
 
     // Danh sách các endpoint (điểm cuối) công khai, không yêu cầu xác thực
@@ -32,8 +35,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(requests ->
                 // Cho phép truy cập tự do đến các endpoint trong PUBLIC_ENDPOINTS với phương thức POST
                 requests.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET,"/users")
-                        .hasRole(Role.ADMIN.name())
+//                        .requestMatchers(HttpMethod.GET,"/users")
+//                        .hasRole(Role.ADMIN.name())
                         // Các request khác yêu cầu phải xác thực
                         .anyRequest().authenticated());
 

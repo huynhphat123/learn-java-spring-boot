@@ -24,6 +24,7 @@ public class User {
      String lastName;
      LocalDate dob; // Ngày sinh
 
-    @ElementCollection
-    Set<String> roles;
+    @ElementCollection(fetch = FetchType.EAGER)
+    Set<String> roles; // Thêm roles vào DTO
+
 }
